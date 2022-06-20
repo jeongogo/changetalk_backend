@@ -35,10 +35,12 @@ module.exports.getChat = async (req, res, next) => {
       { $and: [{ 'creator': { '$in': users } }, { 'users': { '$in': chatUserId } }] },
     );
 
-    const totalCount = chat.messages.length;
+    if (chat === null) {
+      return res.json({ state: false, chat: null });
+    }
     
-
     if (count === 'firstGet') {
+      const totalCount = chat.messages.length;
       currentCount = totalCount - (getCount + 1);
       messages = chat.messages.slice(totalCount - getCount, totalCount);
     } else {
@@ -53,16 +55,10 @@ module.exports.getChat = async (req, res, next) => {
         currentCount = currentCount - (getCount + 1);
       }
       messages = chat.messages.slice(currentCount - getCount, count);
+      chat.messages = messages;
     }
 
-    chat.messages = messages;
-    
-
-    if (chat === null) {
-      return res.json({ state: false, chat: null });
-    } else {
-      return res.json({ state: true, chat: chat, count: currentCount });
-    }
+    return res.json({ state: true, chat: chat, count: currentCount });
   } catch (ex) {
     next(ex);
   }

@@ -56,13 +56,27 @@ module.exports.getUser = async (req, res, next) => {
 
 module.exports.setUser = async (req, res, next) => {  
   try {
-    const { username, stateMessage } = req.body;
+    const { username, stateMessage, avatarImage } = req.body;
     const user = await User.findByIdAndUpdate(
       { _id: req.params.id },
-      { username, stateMessage },
+      { username, stateMessage, avatarImage },
       { new: true }
     );
     return res.json(user);
+  } catch (ex) {
+    next(ex);
+  }
+}
+
+module.exports.imageUpload = async (req, res, next) => {  
+  try {
+    const image = req.file.path;
+
+    if (image === undefined) {
+      return res.json({ msg: '이미지가 존재하지 않습니다.' });
+    }
+    
+    return res.json({ msg: '이미지 업로드 성공', image })
   } catch (ex) {
     next(ex);
   }
