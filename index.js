@@ -4,12 +4,14 @@ const mongoose = require("mongoose");
 const userRoutes = require("./src/routes/userRoutes");
 const chatRoutes = require("./src/routes/chatRoutes");
 const app = express();
+const cookies = require("cookie-parser");
 const path = require("path");
 const socket = require("socket.io");
 require("dotenv").config();
 
 app.use(cors());
 app.use(express.json());
+app.use(cookies());
 
 app.use("/api/auth", userRoutes);
 app.use("/api/chat", chatRoutes);

@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const multer = require('multer');
+const checkLoggedIn = require('../lib/checkLoggedIn');
 const { login, register, addFriend, getUser, setUser, imageUpload, searchUser, getFriends, getAllUsers } = require('../controllers/userController');
 
 const storage  = multer.diskStorage({
@@ -15,12 +16,12 @@ var uploadWithOriginalFilename = multer({ storage: storage });
 
 router.post('/login', login);
 router.post('/register', register);
-router.get('/users', getAllUsers);
-router.get('/:id', getUser);
-router.post('/:id', setUser);
-router.post('/profile/upload', uploadWithOriginalFilename.single('image'), imageUpload);
+router.get('/users', checkLoggedIn, getAllUsers);
+router.get('/:id', checkLoggedIn, getUser);
+router.post('/:id', checkLoggedIn, setUser);
+router.post('/profile/upload', checkLoggedIn, uploadWithOriginalFilename.single('image'), imageUpload);
 router.get('/search/:name', searchUser);
-router.post('/friends/:id', addFriend);
-router.get('/friends/:id', getFriends);
+router.post('/friends/:id', checkLoggedIn, addFriend);
+router.get('/friends/:id', checkLoggedIn, getFriends);
 
 module.exports = router;

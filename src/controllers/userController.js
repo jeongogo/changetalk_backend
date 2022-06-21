@@ -1,5 +1,17 @@
+const jwt = require('jsonwebtoken');
 const User = require('../model/userModel');
 const bcrypt = require('bcrypt');
+
+const generateToken = ({ _id }) => {
+  const token = jwt.sign(
+    { _id },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: '7d',
+    },
+  );
+  return token;
+};
 
 module.exports.register = async (req, res, next) => {
   try {
@@ -7,7 +19,7 @@ module.exports.register = async (req, res, next) => {
   
     const useridCheck = await User.findOne({ userid });
     if (useridCheck) {
-      return res.json({ msg: 'Username already used', status: false });
+      return res.json({ msg: 'User ID already used', status: false });
     }
   
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -15,6 +27,12 @@ module.exports.register = async (req, res, next) => {
       userid,
       username,
       password: hashedPassword,
+    });
+
+    const token = generateToken(user._id);
+    ctx.cookies.set('access_token', token, {
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+      httpOnly: true,
     });
   
     return res.json({ status: true, user })
@@ -38,6 +56,12 @@ module.exports.login = async (req, res, next) => {
     }
 
     delete user.password;
+
+    const token = generateToken(user._id);
+    res.cookie('access_token', token, {
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+      httpOnly: true,
+    });
 
     return res.json({ status: true, user });
   } catch (ex) {
