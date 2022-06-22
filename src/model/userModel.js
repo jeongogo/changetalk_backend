@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema(
   {
-    userid: {
+    email: {
       type: String,
       min: 3,
       max: 20,
@@ -20,7 +20,7 @@ const UserSchema = new mongoose.Schema(
     },
     avatarImage: {
       type: String,
-      default: '../avatar_default.jpg',
+      default: '',
     },
     stateMessage: {
       type: String,

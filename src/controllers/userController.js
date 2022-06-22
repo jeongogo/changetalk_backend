@@ -15,27 +15,25 @@ const generateToken = ({ _id }) => {
 
 module.exports.register = async (req, res, next) => {
   try {
-    const { userid, username, password } = req.body;
+    const { email, username, password } = req.body;
   
-    const useridCheck = await User.findOne({ userid });
-    if (useridCheck) {
-      return res.json({ msg: 'User ID already used', status: false });
+    const emailCheck = await User.findOne({ email });
+    if (emailCheck) {
+      return res.json({ msg: '동일한 이메일이 존재합니다.', status: false });
     }
   
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
-      userid,
+      email,
       username,
       password: hashedPassword,
     });
 
+    user.password = undefined;
+    
     const token = generateToken(user._id);
-    ctx.cookies.set('access_token', token, {
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-      httpOnly: true,
-    });
   
-    return res.json({ status: true, user })
+    return res.json({ status: true, user, token })
   } catch (ex) {
     next(ex);
   }
@@ -43,27 +41,23 @@ module.exports.register = async (req, res, next) => {
 
 module.exports.login = async (req, res, next) => {
   try {
-    const { userid, password } = req.body;
+    const { email, password } = req.body;
   
-    const user = await User.findOne({ userid });
+    const user = await User.findOne({ email });
     if (!user) {
-      return res.json({ msg: 'Incorrect userid or password', status: false });
+      return res.json({ msg: '이메일 혹은 비밀번호가 일치하지 않습니다.', status: false });
     }
     
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.json({ msg: 'Incorrect userid or password', status: false });
+      return res.json({ msg: '이메일 혹은 비밀번호가 일치하지 않습니다.', status: false });
     }
 
-    delete user.password;
+    user.password = undefined;
 
     const token = generateToken(user._id);
-    res.cookie('access_token', token, {
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-      httpOnly: true,
-    });
 
-    return res.json({ status: true, user });
+    return res.json({ status: true, user, token });
   } catch (ex) {
     next(ex);
   }

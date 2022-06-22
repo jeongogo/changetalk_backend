@@ -1,10 +1,10 @@
+const router = require('express').Router();
+const checkLoggedIn = require('../lib/checkLoggedIn');
 const { getChats, getChat, createChat, sendMassage } = require('../controllers/chatController');
 
-const router = require('express').Router();
-
-router.get('/:id', getChats);
-router.post('/', getChat);
-router.post('/create', createChat);
-router.post('/:id', sendMassage);
+router.get('/:id', checkLoggedIn, getChats);
+router.post('/', checkLoggedIn, getChat);
+router.post('/create', checkLoggedIn, createChat);
+router.post('/:id', checkLoggedIn, sendMassage);
 
 module.exports = router;
