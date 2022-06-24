@@ -7,9 +7,11 @@ const app = express();
 const cookies = require("cookie-parser");
 const path = require("path");
 const socket = require("socket.io");
+const compression = require("compression");
 require("dotenv").config();
 
 app.use(cors());
+app.use(compression());
 app.use(express.json());
 app.use(cookies());
 
@@ -45,11 +47,20 @@ const io = socket(server, {
   },
 });
 
+let room = [];
+
 io.on("connection", (socket) => {
   console.log(`User Connected: ${socket.id}`);
-
+  
   socket.on("join_room", (data) => {
+    socket.emit("get_id", socket.id);
     socket.join(data);
+    room.push(
+      {
+        id: data,
+        user: socket.id
+      }
+    )
     console.log(`User with ID: ${socket.id} joined room: ${data}`);
   });
 
@@ -59,5 +70,18 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("User Disconnected", socket.id);
+    room = room.filter((r) => ( r.user !== socket.id ));
+  });
+
+  socket.on("caller", (data) => {
+    const oopo = room.filter((r) => (r.id === data.roomID && r.user !== data.from));
+    io.to(oopo[0].user).emit("caller", {
+      signal: data.signalData,
+      from: data.from,
+    });
+  });
+
+  socket.on("answer_call", (data) => {
+    io.to(data.to).emit("accept_call", data.signal);
   });
 });
